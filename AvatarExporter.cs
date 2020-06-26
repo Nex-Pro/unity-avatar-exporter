@@ -20,7 +20,7 @@ class AvatarExporter : MonoBehaviour {
     static readonly float HIPS_SPINE_CHEST_MIN_SEPARATION = 0.001f;
     static readonly int MAXIMUM_USER_BONE_COUNT = 256;
     static readonly string EMPTY_WARNING_TEXT = "None";
-    static readonly string TEXTURES_DIRECTORY = "textures";
+    static readonly string TEXTURES_DIRECTORY = ".";
     static readonly string DEFAULT_MATERIAL_NAME = "No Name";
     static readonly string HEIGHT_REFERENCE_PREFAB = "Assets/Editor/AvatarExporter/HeightReference.prefab";
     static readonly Vector3 PREVIEW_CAMERA_PIVOT = new Vector3(0.0f, 1.755f, 0.0f);
@@ -666,7 +666,7 @@ class AvatarExporter : MonoBehaviour {
         try {
             File.WriteAllText(exportFstPath, "exporterVersion = " + AVATAR_EXPORTER_VERSION + "\nname = " + projectName + 
                                              "\ntype = body+head\nscale = " + scale + "\nfilename = " + assetName + 
-                                             ".fbx\n" + "texdir = textures\n");
+                                             ".fbx\n" + "texdir = " + TEXTURES_DIRECTORY + "\n");
         } catch { 
             EditorUtility.DisplayDialog("Error", "Failed to write file " + exportFstPath + 
                                         ". Please check the location and try again.", "Ok");
