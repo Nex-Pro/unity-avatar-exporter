@@ -446,7 +446,7 @@ class AvatarExporter : MonoBehaviour {
             EditorUtility.DisplayDialog("Error", boneErrors, "Ok");
             return;
         }
-        
+
         // since there are no errors we can now open the preview scene in place of the user's scene
         if (!OpenPreviewScene()) {
             return;
@@ -458,7 +458,7 @@ class AvatarExporter : MonoBehaviour {
         }
         
         string documentsFolder = System.Environment.GetFolderPath(System.Environment.SpecialFolder.MyDocuments);
-        string hifiFolder = documentsFolder + "\\Tivoli Cloud Projects";
+        string hifiFolder = Path.Combine(documentsFolder, "Tivoli Cloud Projects");
         if (updateExistingAvatar) { // Update Existing Avatar menu option           
             // open update existing project popup window including project to update, scale, and warnings
             // default the initial file chooser location to HiFi projects folder in user documents folder
@@ -501,7 +501,7 @@ class AvatarExporter : MonoBehaviour {
             return;
         }
         
-        string exportModelPath = Path.GetDirectoryName(exportFstPath) + "\\" + assetName + ".fbx";
+        string exportModelPath = Path.Combine(Path.GetDirectoryName(exportFstPath), assetName + ".fbx");
         if (File.Exists(exportModelPath)) { 
             // if the fbx in Unity Assets is newer than the fbx in the target export
             // folder or vice-versa then ask to replace the older fbx with the newer fbx
@@ -604,7 +604,7 @@ class AvatarExporter : MonoBehaviour {
         
         // create empty Textures and Scripts folders in the project directory
         string texturesDirectory = GetTextureDirectory(projectDirectory);
-        string scriptsDirectory = projectDirectory + "\\scripts";
+        string scriptsDirectory = Path.Combine(projectDirectory, "scripts");
         Directory.CreateDirectory(texturesDirectory);
         Directory.CreateDirectory(scriptsDirectory);
         
@@ -1131,7 +1131,7 @@ class AvatarExporter : MonoBehaviour {
     }
     
     static string GetTextureDirectory(string basePath) {
-        string textureDirectory = Path.GetDirectoryName(basePath) + "\\" + TEXTURES_DIRECTORY;
+        string textureDirectory = Path.Combine(Path.GetDirectoryName(basePath), TEXTURES_DIRECTORY);
         textureDirectory = textureDirectory.Replace("\\\\", "\\");
         return textureDirectory;
     }
@@ -1162,7 +1162,7 @@ class AvatarExporter : MonoBehaviour {
     static bool CopyExternalTextures(string texturesDirectory) {
         // copy the found dependency textures from the local asset folder to the textures folder in the target export project
         foreach (var texture in textureDependencies) {
-            string targetPath = texturesDirectory + "\\" + texture.Key;
+            string targetPath = Path.Combine(texturesDirectory, texture.Key);
             try {
                 File.Copy(texture.Value, targetPath, true);
             } catch {
@@ -1295,7 +1295,7 @@ class AvatarExporter : MonoBehaviour {
         }
     }
     
-    static bool OpenPreviewScene() {
+    static bool OpenPreviewScene() {        
         // store the current scene setup to restore when closing the preview scene
         previousSceneSetup = EditorSceneManager.GetSceneManagerSetup();
         
@@ -1557,7 +1557,12 @@ class ExportProjectWindow : EditorWindow {
                 return true;
             }
         } else {
-            projectDirectory = projectLocation + "\\" + projectName + "\\";
+            projectDirectory = Path.Combine(projectLocation, projectName);
+            #if UNITY_EDITOR_WIN
+            projectDirectory = projectDirectory + "\\";
+            #else
+            projectDirectory = projectDirectory + "/";
+            #endif
             if (projectName.Length > 0) {
                 // new project must have a unique folder name since the folder will be created for it
                 if (Directory.Exists(projectDirectory)) {
@@ -1568,7 +1573,18 @@ class ExportProjectWindow : EditorWindow {
             }
             if (projectLocation.Length > 0) {
                 // before clicking Export we can verify that the project location at least starts with a drive
-                if (!Char.IsLetter(projectLocation[0]) || projectLocation.Length == 1 || projectLocation[1] != ':') {
+                #if UNITY_EDITOR_WIN
+                if (
+                    !Char.IsLetter(projectLocation[0]) ||
+                    projectLocation.Length == 1 ||
+                    projectLocation[1] != ':'
+                )
+                #else
+                if (
+                    projectLocation[0] != '/'
+                ) 
+                #endif
+                {
                     errorText = "Project location is invalid. Please choose a different project location.\n";
                     return true;
                 }
