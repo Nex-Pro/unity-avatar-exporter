@@ -206,10 +206,18 @@ class AvatarExporter : MonoBehaviour {
     static readonly string STANDARD_SHADER = "Standard";
     static readonly string STANDARD_ROUGHNESS_SHADER = "Standard (Roughness setup)";
     static readonly string STANDARD_SPECULAR_SHADER = "Standard (Specular setup)";
+    static readonly string UNLIT_COLOR_SHADER = "Unlit/Color";
+    static readonly string UNLIT_TEXTURE_SHADER = "Unlit/Texture";
+    static readonly string UNLIT_TEXTURE_TRANSPARENT_SHADER = "Unlit/Transparent";
+    static readonly string UNLIT_TEXTURE_TRANSPARENT_CUTOUT_SHADER = "Unlit/Transparent Cutout";
     static readonly string[] SUPPORTED_SHADERS = new string[] {
         STANDARD_SHADER,
         STANDARD_ROUGHNESS_SHADER,
         STANDARD_SPECULAR_SHADER,
+        UNLIT_COLOR_SHADER,
+        UNLIT_TEXTURE_SHADER,
+        UNLIT_TEXTURE_TRANSPARENT_SHADER,
+        UNLIT_TEXTURE_TRANSPARENT_CUTOUT_SHADER
     };
 
     enum AvatarRule {
@@ -293,30 +301,45 @@ class AvatarExporter : MonoBehaviour {
         public string occlusionMap;
         public Color emissive;
         public string emissiveMap;
+        public bool unlit;
         
         public string getJSON() {
             string json = "{ \"materialVersion\": 1, \"materials\": { ";
+            
             json += "\"albedo\": [" + albedo.r + ", " + albedo.g + ", " + albedo.b + "], ";
             if (!string.IsNullOrEmpty(albedoMap)) {
                 json += "\"albedoMap\": \"" + albedoMap + "\", ";
             }
-            json += "\"metallic\": " + metallic + ", ";
-            if (!string.IsNullOrEmpty(metallicMap)) {
-                json += "\"metallicMap\": \"" + metallicMap + "\", ";
+
+            if (!string.IsNullOrEmpty(albedoMap)) {
+                json += "\"opacityMap\": \"" + albedoMap + "\", ";
             }
-            json += "\"roughness\": " + roughness + ", ";
-            if (!string.IsNullOrEmpty(roughnessMap)) {
-                json += "\"roughnessMap\": \"" + roughnessMap + "\", ";
-            }
-            if (!string.IsNullOrEmpty(normalMap)) {
-                json += "\"normalMap\": \"" + normalMap + "\", ";
-            }
-            if (!string.IsNullOrEmpty(occlusionMap)) {
-                json += "\"occlusionMap\": \"" + occlusionMap + "\", ";
-            }
-            json += "\"emissive\": [" + emissive.r + ", " + emissive.g + ", " + emissive.b + "]";
-            if (!string.IsNullOrEmpty(emissiveMap)) {
-                json += ", \"emissiveMap\": \"" + emissiveMap + "\"";
+
+            if (unlit == true) {
+                json += "\"unlit\": true";
+            } else {
+                json += "\"metallic\": " + metallic + ", ";
+                if (!string.IsNullOrEmpty(metallicMap)) {
+                    json += "\"metallicMap\": \"" + metallicMap + "\", ";
+                }
+
+                json += "\"roughness\": " + roughness + ", ";
+                if (!string.IsNullOrEmpty(roughnessMap)) {
+                    json += "\"roughnessMap\": \"" + roughnessMap + "\", ";
+                }
+
+                if (!string.IsNullOrEmpty(normalMap)) {
+                    json += "\"normalMap\": \"" + normalMap + "\", ";
+                }
+
+                if (!string.IsNullOrEmpty(occlusionMap)) {
+                    json += "\"occlusionMap\": \"" + occlusionMap + "\", ";
+                }
+
+                json += "\"emissive\": [" + emissive.r + ", " + emissive.g + ", " + emissive.b + "]";
+                if (!string.IsNullOrEmpty(emissiveMap)) {
+                    json += ", \"emissiveMap\": \"" + emissiveMap + "\"";
+                }
             }
             json += " } }";
             return json;
@@ -1194,31 +1217,42 @@ class AvatarExporter : MonoBehaviour {
             }           
 
             MaterialData materialData = new MaterialData();
-            materialData.albedo = material.GetColor("_Color");
-            materialData.albedoMap = GetMaterialTexture(material, "_MainTex");
-            materialData.roughness = material.GetFloat("_Glossiness");
-            materialData.roughnessMap = GetMaterialTexture(material, "_SpecGlossMap");
-            materialData.normalMap = GetMaterialTexture(material, "_BumpMap");
-            materialData.occlusionMap = GetMaterialTexture(material, "_OcclusionMap");
-            materialData.emissive = material.GetColor("_EmissionColor");
-            materialData.emissiveMap = GetMaterialTexture(material, "_EmissionMap");
-            
-            // for specular setups we will treat the metallic value as the average of the specular RGB intensities
-            if (shaderName == STANDARD_SPECULAR_SHADER) {
-                Color specular = material.GetColor("_SpecColor");
-                materialData.metallic = (specular.r + specular.g + specular.b) / 3.0f;
-            } else {
-                materialData.metallic = material.GetFloat("_Metallic");
-                materialData.metallicMap = GetMaterialTexture(material, "_MetallicGlossMap");
-            }
-            
-            // for non-roughness Standard shaders give a warning that is not the recommended Standard shader, 
-            // and invert smoothness for roughness
-            if (shaderName == STANDARD_SHADER || shaderName == STANDARD_SPECULAR_SHADER) {
-                if (!alternateStandardShaderMaterials.Contains(materialName)) {
-                    alternateStandardShaderMaterials.Add(materialName);
+            materialData.unlit = shaderName.StartsWith("Unlit");
+
+            if (materialData.unlit) {
+                if (shaderName == UNLIT_COLOR_SHADER) {
+                    materialData.albedo = material.GetColor("_Color");    
+                } else {
+                    materialData.albedo = new Color(1f, 1f, 1f, 1f);
+                    materialData.albedoMap = GetMaterialTexture(material, "_MainTex");    
                 }
-                materialData.roughness = 1.0f - materialData.roughness;
+            } else {
+                materialData.albedo = material.GetColor("_Color");
+                materialData.albedoMap = GetMaterialTexture(material, "_MainTex");
+                materialData.roughness = material.GetFloat("_Glossiness");
+                materialData.roughnessMap = GetMaterialTexture(material, "_SpecGlossMap");
+                materialData.normalMap = GetMaterialTexture(material, "_BumpMap");
+                materialData.occlusionMap = GetMaterialTexture(material, "_OcclusionMap");
+                materialData.emissive = material.GetColor("_EmissionColor");
+                materialData.emissiveMap = GetMaterialTexture(material, "_EmissionMap");
+                
+                // for specular setups we will treat the metallic value as the average of the specular RGB intensities
+                if (shaderName == STANDARD_SPECULAR_SHADER) {
+                    Color specular = material.GetColor("_SpecColor");
+                    materialData.metallic = (specular.r + specular.g + specular.b) / 3.0f;
+                } else {
+                    materialData.metallic = material.GetFloat("_Metallic");
+                    materialData.metallicMap = GetMaterialTexture(material, "_MetallicGlossMap");
+                }
+
+                // for non-roughness Standard shaders give a warning that is not the recommended Standard shader, 
+                // and invert smoothness for roughness
+                if (shaderName == STANDARD_SHADER || shaderName == STANDARD_SPECULAR_SHADER) {
+                    if (!alternateStandardShaderMaterials.Contains(materialName)) {
+                        alternateStandardShaderMaterials.Add(materialName);
+                    }
+                    materialData.roughness = 1.0f - materialData.roughness;
+                }
             }
             
             // store the material data under each fbx material name that it overrides from the material mapping
