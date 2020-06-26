@@ -289,6 +289,10 @@ class AvatarExporter : MonoBehaviour {
             parentName = parent;
         }
     }
+
+    static string colorToJSON(Color c) {
+        return "[" + c.r + "," + c.g + "," + c.b + "]";
+    }
     
     class MaterialData {
         public Color albedo;
@@ -304,44 +308,38 @@ class AvatarExporter : MonoBehaviour {
         public bool unlit;
         
         public string getJSON() {
-            string json = "{ \"materialVersion\": 1, \"materials\": { ";
+            string json = "{\"materialVersion\":1,\"materials\":{";
             
-            json += "\"albedo\": [" + albedo.r + ", " + albedo.g + ", " + albedo.b + "], ";
-            if (!string.IsNullOrEmpty(albedoMap)) {
-                json += "\"albedoMap\": \"" + albedoMap + "\", ";
-            }
+            json += "\"albedo\":" + colorToJSON(albedo) + ",";
+            if (!string.IsNullOrEmpty(albedoMap))
+                json += "\"albedoMap\":\"" + albedoMap + "\",";
 
-            if (!string.IsNullOrEmpty(albedoMap)) {
-                json += "\"opacityMap\": \"" + albedoMap + "\", ";
-            }
+            if (!string.IsNullOrEmpty(albedoMap))
+                json += "\"opacityMap\":\"" + albedoMap + "\",";
 
             if (unlit == true) {
-                json += "\"unlit\": true";
+                json += "\"unlit\":true";
             } else {
-                json += "\"metallic\": " + metallic + ", ";
-                if (!string.IsNullOrEmpty(metallicMap)) {
-                    json += "\"metallicMap\": \"" + metallicMap + "\", ";
-                }
+                json += "\"metallic\":" + metallic + ",";
+                if (!string.IsNullOrEmpty(metallicMap)) 
+                    json += "\"metallicMap\":\"" + metallicMap + "\",";
 
-                json += "\"roughness\": " + roughness + ", ";
-                if (!string.IsNullOrEmpty(roughnessMap)) {
-                    json += "\"roughnessMap\": \"" + roughnessMap + "\", ";
-                }
+                json += "\"roughness\":" + roughness + ",";
+                if (!string.IsNullOrEmpty(roughnessMap)) 
+                    json += "\"roughnessMap\":\"" + roughnessMap + "\",";
 
-                if (!string.IsNullOrEmpty(normalMap)) {
-                    json += "\"normalMap\": \"" + normalMap + "\", ";
-                }
+                if (!string.IsNullOrEmpty(normalMap)) 
+                    json += "\"normalMap\":\"" + normalMap + "\",";
 
-                if (!string.IsNullOrEmpty(occlusionMap)) {
-                    json += "\"occlusionMap\": \"" + occlusionMap + "\", ";
-                }
+                if (!string.IsNullOrEmpty(occlusionMap)) 
+                    json += "\"occlusionMap\":\"" + occlusionMap + "\",";
 
-                json += "\"emissive\": [" + emissive.r + ", " + emissive.g + ", " + emissive.b + "]";
-                if (!string.IsNullOrEmpty(emissiveMap)) {
-                    json += ", \"emissiveMap\": \"" + emissiveMap + "\"";
-                }
+                json += "\"emissive\":" + colorToJSON(emissive);
+                if (!string.IsNullOrEmpty(emissiveMap)) 
+                    json += ",\"emissiveMap\":\"" + emissiveMap + "\"";
+                
             }
-            json += " } }";
+            json += "}}";
             return json;
         }
     }
@@ -724,21 +722,21 @@ class AvatarExporter : MonoBehaviour {
         
         // if there is any material data to save then write out all materials in JSON material format to the materialMap field
         if (materialDatas.Count > 0) {
-            string materialJson = "{ ";
+            string materialJson = "{";
             foreach (var materialData in materialDatas) {
                 // if this is the only material in the mapping and it is mapped to default material name No Name, 
                 // then the avatar has no embedded materials and this material should be applied to all meshes
                 string materialName = materialData.Key;
                 if (materialMappings.Count == 1 && materialName == DEFAULT_MATERIAL_NAME) {
-                    materialJson += "\"all\": ";
+                    materialJson += "\"all\":";
                 } else {
-                    materialJson += "\"mat::" + materialName + "\": ";
+                    materialJson += "\"mat::" + materialName + "\":";
                 }
                 materialJson += materialData.Value.getJSON();
-                materialJson += ", ";
+                materialJson += ",";
             }
-            materialJson = materialJson.Substring(0, materialJson.LastIndexOf(", "));
-            materialJson += " }";
+            materialJson = materialJson.Substring(0, materialJson.LastIndexOf(","));
+            materialJson += "}";
             File.AppendAllText(exportFstPath, "materialMap = " + materialJson);
         }
              
