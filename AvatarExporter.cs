@@ -1,6 +1,6 @@
 ﻿//  AvatarExporter.cs
 //
-//  Created by David Back on 28 Nov 2018 and edited by Mora Levi for Tivoli Cloud
+//  Created by David Back on 28 Nov 2018 and edited by Mora Levi for Tivoli Cloud VR
 
 using UnityEditor;
 using UnityEditor.SceneManagement;
@@ -372,19 +372,19 @@ class AvatarExporter : MonoBehaviour {
     static GameObject avatarPreviewObject;
     static GameObject heightReferenceObject;
 
-    [MenuItem("Tivoli Cloud/Export New Avatar")]
+    [MenuItem("Tivoli Cloud VR/Export New Avatar")]
     static void ExportNewAvatar() {
         ExportSelectedAvatar(false);
     }
 
-    [MenuItem("Tivoli Cloud/Update Existing Avatar")]
+    [MenuItem("Tivoli Cloud VR/Update Existing Avatar")]
     static void UpdateAvatar() {
         ExportSelectedAvatar(true);
     }
     
-    [MenuItem("Tivoli Cloud/About")]
+    [MenuItem("Tivoli Cloud VR/About")]
     static void About() {
-        EditorUtility.DisplayDialog("About", "Edited for use on Tivoli Cloud, \nAvatar Exporter\nVersion " + AVATAR_EXPORTER_VERSION, "Ok");
+        EditorUtility.DisplayDialog("About", "Edited for use on Tivoli Cloud VR, \nAvatar Exporter\nVersion " + AVATAR_EXPORTER_VERSION, "Ok");
     }
 
     static void ExportSelectedAvatar(bool updateExistingAvatar) {
@@ -481,7 +481,7 @@ class AvatarExporter : MonoBehaviour {
         }
         
         string documentsFolder = System.Environment.GetFolderPath(System.Environment.SpecialFolder.MyDocuments);
-        string hifiFolder = Path.Combine(documentsFolder, "Tivoli Cloud Projects");
+        string hifiFolder = Path.Combine(documentsFolder, "Tivoli Cloud VR Projects");
         if (updateExistingAvatar) { // Update Existing Avatar menu option           
             // open update existing project popup window including project to update, scale, and warnings
             // default the initial file chooser location to HiFi projects folder in user documents folder
@@ -489,13 +489,13 @@ class AvatarExporter : MonoBehaviour {
             string initialPath = Directory.Exists(hifiFolder) ? hifiFolder : documentsFolder;
             window.Init(initialPath, warnings, updateExistingAvatar, avatarPreviewObject, OnUpdateExistingProject, OnExportWindowClose);
         } else { // Export New Avatar menu option
-            // create Tivoli Cloud Projects folder in user documents folder if it doesn't exist
+            // create Tivoli Cloud VR Projects folder in user documents folder if it doesn't exist
             if (!Directory.Exists(hifiFolder)) {    
                 Directory.CreateDirectory(hifiFolder);
             }
             
             // open export new project popup window including project name, project location, scale, and warnings
-            // default the initial project location path to the Tivoli Cloud Projects folder above
+            // default the initial project location path to the Tivoli Cloud VR Projects folder above
             ExportProjectWindow window = ScriptableObject.CreateInstance<ExportProjectWindow>();
             window.Init(hifiFolder, warnings, updateExistingAvatar, avatarPreviewObject, OnExportNewProject, OnExportWindowClose);
         }
@@ -658,7 +658,7 @@ class AvatarExporter : MonoBehaviour {
         ClosePreviewScene();
     }
     
-    // The Tivoli Cloud FBX Serializer omits the colon based prefixes. This will make the jointnames compatible.
+    // The Tivoli Cloud VR FBX Serializer omits the colon based prefixes. This will make the jointnames compatible.
     static string removeTypeFromJointname(string jointName) {
         return jointName.Substring(jointName.IndexOf(':') + 1);
     }
