@@ -627,9 +627,7 @@ class AvatarExporter : MonoBehaviour {
         
         // create empty Textures and Scripts folders in the project directory
         string texturesDirectory = GetTextureDirectory(projectDirectory);
-        string scriptsDirectory = Path.Combine(projectDirectory, "scripts");
         Directory.CreateDirectory(texturesDirectory);
-        Directory.CreateDirectory(scriptsDirectory);
         
         // write out the avatar.fst file to the project directory
         string exportFstPath = projectDirectory + "avatar.fst";
