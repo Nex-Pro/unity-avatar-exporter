@@ -1,15 +1,34 @@
 stages:
     - build
+    - release
+
+.release:
+    only:
+        - /^[0-9]+?\.[0-9]+?\.[0-9]+?$/i
+    environment:
+        FILE_NAME: TivoliAvatarExporter.unitypackage
 
 build:
     stage: build
     image: node:lts
+    extends: .release
     script:
         - npm i -g testfairy-unity-asset-packager
         - testfairy-unity-asset-packager
-          -o TivoliAvatarExporter.unitypackage
+          -o $FILE_NAME
           -p Assets/Editor/TivoliAvatarExporter .
     artifacts:
         expire_in: 1 day
         paths:
-            - TivoliAvatarExporter.unitypackage
+            - $FILE_NAME
+
+release:
+    stage: release
+    image: registry.gitlab.com/gitlab-org/release-cli:latest
+    extends: .release
+    script:
+        - release-cli create
+          --name="Tivoli Avatar Exporter"
+          --description="Version $CI_COMMIT_TAG"
+          --assets-links-name "$FILE_NAME"
+          --assets-links-url "$CI_PROJECT_URL/-/jobs/artifacts/$CI_COMMIT_SHA/raw/$FILE_NAME?job=build"
