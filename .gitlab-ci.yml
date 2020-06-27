@@ -18,7 +18,7 @@ build:
           -o $FILE_NAME
           -p Assets/Editor/TivoliAvatarExporter .
     artifacts:
-        expire_in: 1 day
+        expire_in: 1 year
         paths:
             - $FILE_NAME
 
@@ -28,6 +28,7 @@ release:
     extends: .release
     script:
         - release-cli create
-          --name="Tivoli Avatar Exporter $CI_COMMIT_TAG"
+          --name "Tivoli Avatar Exporter $CI_COMMIT_TAG"
+          --description ""
           --assets-links-name "$FILE_NAME"
           --assets-links-url "$CI_PROJECT_URL/-/jobs/artifacts/$CI_COMMIT_SHORT_SHA/raw/$FILE_NAME?job=build"
