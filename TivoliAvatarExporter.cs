@@ -22,7 +22,7 @@ class AvatarExporter : MonoBehaviour {
     static readonly string EMPTY_WARNING_TEXT = "None";
     static readonly string TEXTURES_DIRECTORY = ".";
     static readonly string DEFAULT_MATERIAL_NAME = "No Name";
-    static readonly string HEIGHT_REFERENCE_PREFAB = "Assets/Editor/TivoliAvatarExporter/HeightReference.prefab";
+    static readonly string HEIGHT_REFERENCE_PREFAB = "Assets/Editor/TivoliAvatarExporter/Prefabs/HeightReference.prefab";
     static readonly Vector3 PREVIEW_CAMERA_PIVOT = new Vector3(0.0f, 1.755f, 0.0f);
     static readonly Vector3 PREVIEW_CAMERA_DIRECTION = new Vector3(0.0f, 0.0f, -1.0f);
     
