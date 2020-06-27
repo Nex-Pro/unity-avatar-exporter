@@ -1,4 +1,5 @@
-# unity to fst 
+# Tivoli's Unity Avatar Exporter
 
-unity to fst 
-(need to add more detail)
+Download the latest version here!
+
+https://git.tivolicloud.com/tivolicloud/unity-avatar-exporter/-/releases
