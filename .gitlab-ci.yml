@@ -5,7 +5,7 @@ stages:
 .release:
     only:
         - /^[0-9]+?\.[0-9]+?\.[0-9]+?$/i
-    environment:
+    variables:
         FILE_NAME: TivoliAvatarExporter.unitypackage
 
 build:
