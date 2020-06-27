@@ -1,0 +1,18 @@
+stages:
+    - build
+
+build:
+    image: node:lts
+    script:
+        - npm i -g testfairy-unity-asset-packager
+
+        - mkdir -p Assets/Editor/TivoliAvatarExporter
+        - mv * Assets/Editor/TivoliAvatarExporter
+
+        - testfairy-unity-asset-packager
+          -o TivoliAvatarExporter.unitypackage
+          Assets
+    artifacts:
+        expire_in: 1 day
+        paths:
+            - TivoliAvatarExporter.unitypackage
