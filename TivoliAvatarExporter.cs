@@ -644,8 +644,11 @@ class AvatarExporter : MonoBehaviour {
         if (warnings != EMPTY_WARNING_TEXT) {
             successDialog += "Warnings:\n" + warnings;
         }
-        successDialog += "\n\nNote: If you are using any external textures with your model, " +
-                         "please ensure those textures are copied to " + texturesDirectory;
+
+        // disabled because we're not using a textures directory so it's extremely obvious
+        // successDialog += "\n\nNote: If you are using any external textures with your model, " +
+                        //  "please ensure those textures are copied to " + texturesDirectory;
+        
         EditorUtility.DisplayDialog("Success!", successDialog, "Ok");
     }
 
