@@ -6,7 +6,7 @@ stages:
     only:
         - /^[0-9]+?\.[0-9]+?\.[0-9]+?$/i
     variables:
-        FILE_NAME: TivoliAvatarExporter.unitypackage
+        FILE_NAME: TivoliAvatarExporter-$CI_COMMIT_TAG.unitypackage
 
 build:
     stage: build
@@ -18,7 +18,7 @@ build:
           -o $FILE_NAME
           -p Assets/Editor/TivoliAvatarExporter .
     artifacts:
-        expire_in: 1 year
+        expire_in: 99999 years
         paths:
             - $FILE_NAME
 
