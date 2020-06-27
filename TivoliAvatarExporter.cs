@@ -27,35 +27,35 @@ class AvatarExporter : MonoBehaviour {
     static readonly Vector3 PREVIEW_CAMERA_DIRECTION = new Vector3(0.0f, 0.0f, -1.0f);
     
     // TODO: use regex
-    static readonly string[] RECOMMENDED_UNITY_VERSIONS = new string[] {
-        "2018.2.12f1",
-        "2018.2.11f1",
-        "2018.2.10f1",
-        "2018.2.9f1",
-        "2018.2.8f1",
-        "2018.2.7f1",
-        "2018.2.6f1",
-        "2018.2.5f1",
-        "2018.2.4f1",
-        "2018.2.3f1",
-        "2018.2.2f1",
-        "2018.2.1f1",
-        "2018.2.0f2",
-        "2018.1.9f2",
-        "2018.1.8f1",
-        "2018.1.7f1",
-        "2018.1.6f1",
-        "2018.1.5f1",
-        "2018.1.4f1",
-        "2018.1.3f1",
-        "2018.1.2f1",
-        "2018.1.1f1",
-        "2018.1.0f2",
-        "2017.4.18f1",
-        "2017.4.17f1",
-        "2017.4.16f1",
-        "2017.4.15f1",
-    };
+    // static readonly string[] RECOMMENDED_UNITY_VERSIONS = new string[] {
+    //     "2018.2.12f1",
+    //     "2018.2.11f1",
+    //     "2018.2.10f1",
+    //     "2018.2.9f1",
+    //     "2018.2.8f1",
+    //     "2018.2.7f1",
+    //     "2018.2.6f1",
+    //     "2018.2.5f1",
+    //     "2018.2.4f1",
+    //     "2018.2.3f1",
+    //     "2018.2.2f1",
+    //     "2018.2.1f1",
+    //     "2018.2.0f2",
+    //     "2018.1.9f2",
+    //     "2018.1.8f1",
+    //     "2018.1.7f1",
+    //     "2018.1.6f1",
+    //     "2018.1.5f1",
+    //     "2018.1.4f1",
+    //     "2018.1.3f1",
+    //     "2018.1.2f1",
+    //     "2018.1.1f1",
+    //     "2018.1.0f2",
+    //     "2017.4.18f1",
+    //     "2017.4.17f1",
+    //     "2017.4.16f1",
+    //     "2017.4.15f1",
+    // };
    
     static readonly Dictionary<string, string> HUMANOID_TO_HIFI_JOINT_NAME = new Dictionary<string, string> {
         {"Chest", "Spine1"},
@@ -906,13 +906,13 @@ class AvatarExporter : MonoBehaviour {
         for (AvatarRule avatarRule = 0; avatarRule < AvatarRule.AvatarRuleEnd; ++avatarRule) { 
             switch (avatarRule) {
                 case AvatarRule.RecommendedUnityVersion:
-                    if (Array.IndexOf(RECOMMENDED_UNITY_VERSIONS, Application.unityVersion) == -1) {
-                        failedAvatarRules.Add(avatarRule, "The current version of Unity is not one of the recommended Unity " +
-                                                          "versions. If you are using a version of Unity later than 2018.2.12f1, " +
-                                                          "it is recommended to apply Enforce T-Pose under the Pose dropdown " +
-                                                          "in Humanoid configuration.");
-                    }
-                    break;
+                    // if (Array.IndexOf(RECOMMENDED_UNITY_VERSIONS, Application.unityVersion) == -1) {
+                    //     failedAvatarRules.Add(avatarRule, "The current version of Unity is not one of the recommended Unity " +
+                    //                                       "versions. If you are using a version of Unity later than 2018.2.12f1, " +
+                    //                                       "it is recommended to apply Enforce T-Pose under the Pose dropdown " +
+                    //                                       "in Humanoid configuration.");
+                    // }
+                    // break;
                 case AvatarRule.SingleRoot:
                     // avatar rule fails if the root bone node has more than one child bone
                     if (userBoneTree.children.Count > 1) {
