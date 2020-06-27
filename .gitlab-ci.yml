@@ -7,8 +7,9 @@ build:
     script:
         - npm i -g testfairy-unity-asset-packager
 
-        - mkdir -p Assets/Editor/TivoliAvatarExporter
-        - mv * Assets/Editor/TivoliAvatarExporter; true
+        - mkdir -p .Assets/Editor/TivoliAvatarExporter
+        - mv * .Assets/Editor/TivoliAvatarExporter
+        - mv .Assets Assets
 
         - testfairy-unity-asset-packager
           -o TivoliAvatarExporter.unitypackage
