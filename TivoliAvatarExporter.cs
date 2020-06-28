@@ -1530,7 +1530,7 @@ class ExportProjectWindow : EditorWindow {
         scaleInputStyle.fixedWidth = SCALE_TEXT_WIDTH;
         actualScale *= 100.0f; // convert to 100-based percentage for display purposes
         string actualScaleStr = GUILayout.TextField(String.Format("{0:0.00}", actualScale), scaleInputStyle);
-        actualScaleStr = Regex.Replace(actualScaleStr, @"[^0-9.]", "");
+        // actualScaleStr = Regex.Replace(actualScaleStr, @"[^0-9.,]", "");
         actualScale = float.Parse(actualScaleStr);
         actualScale /= 100.0f; // convert back to 1.0-based percentage
         SetAvatarScale(actualScale);
