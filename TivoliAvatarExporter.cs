@@ -1,4 +1,4 @@
-﻿//  AvatarExporter.cs
+//  AvatarExporter.cs
 //
 //  Created by David Back on 28 Nov 2018 and edited by Mora Levi for Tivoli Cloud VR
 
@@ -627,8 +627,8 @@ class AvatarExporter : MonoBehaviour {
         string texturesDirectory = GetTextureDirectory(projectDirectory);
         Directory.CreateDirectory(texturesDirectory);
         
-        // write out the avatar.fst file to the project directory
-        string exportFstPath = projectDirectory + "avatar.fst";
+        // write out the fst file to the project directory
+        string exportFstPath = projectDirectory + assetName + ".fst";
         if (!WriteFST(exportFstPath, projectName, scale)) {
             return;
         }
