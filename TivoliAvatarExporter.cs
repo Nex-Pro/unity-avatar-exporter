@@ -1,4 +1,4 @@
-//  AvatarExporter.cs
+﻿//  AvatarExporter.cs
 //
 //  Created by David Back on 28 Nov 2018 and edited by Mora Levi for Tivoli Cloud VR
 
@@ -205,15 +205,18 @@ class AvatarExporter : MonoBehaviour {
     
     static readonly string STANDARD_SHADER = "Standard";
     static readonly string STANDARD_ROUGHNESS_SHADER = "Standard (Roughness setup)";
-    static readonly string STANDARD_SPECULAR_SHADER = "Standard (Specular setup)";
+    static readonly string STANDARD_AUTODESK_INTERACTIVE_SHADER = "Autodesk Interactive";
+
     static readonly string UNLIT_COLOR_SHADER = "Unlit/Color";
     static readonly string UNLIT_TEXTURE_SHADER = "Unlit/Texture";
     static readonly string UNLIT_TEXTURE_TRANSPARENT_SHADER = "Unlit/Transparent";
     static readonly string UNLIT_TEXTURE_TRANSPARENT_CUTOUT_SHADER = "Unlit/Transparent Cutout";
+
     static readonly string[] SUPPORTED_SHADERS = new string[] {
         STANDARD_SHADER,
         STANDARD_ROUGHNESS_SHADER,
-        STANDARD_SPECULAR_SHADER,
+        STANDARD_AUTODESK_INTERACTIVE_SHADER,
+        
         UNLIT_COLOR_SHADER,
         UNLIT_TEXTURE_SHADER,
         UNLIT_TEXTURE_TRANSPARENT_SHADER,
@@ -297,9 +300,9 @@ class AvatarExporter : MonoBehaviour {
     class MaterialData {
         public Color albedo;
         public string albedoMap;
-        public double metallic;
+        public double metallic = -1f;
         public string metallicMap;
-        public double roughness;
+        public double roughness = -1f;
         public string roughnessMap;
         public string normalMap;
         public string occlusionMap;
@@ -320,11 +323,11 @@ class AvatarExporter : MonoBehaviour {
             if (unlit == true) {
                 json += "\"unlit\":true";
             } else {
-                json += "\"metallic\":" + metallic + ",";
+                if (metallic != -1) json += "\"metallic\":" + metallic + ",";
                 if (!string.IsNullOrEmpty(metallicMap)) 
                     json += "\"metallicMap\":\"" + metallicMap + "\",";
 
-                json += "\"roughness\":" + roughness + ",";
+                if (roughness != -1) json += "\"roughness\":" + roughness + ",";
                 if (!string.IsNullOrEmpty(roughnessMap)) 
                     json += "\"roughnessMap\":\"" + roughnessMap + "\",";
 
@@ -1235,30 +1238,64 @@ class AvatarExporter : MonoBehaviour {
             } else {
                 materialData.albedo = material.GetColor("_Color");
                 materialData.albedoMap = GetMaterialTexture(material, "_MainTex");
-                materialData.roughness = material.GetFloat("_Glossiness");
-                materialData.roughnessMap = GetMaterialTexture(material, "_SpecGlossMap");
                 materialData.normalMap = GetMaterialTexture(material, "_BumpMap");
-                materialData.occlusionMap = GetMaterialTexture(material, "_OcclusionMap");
+                materialData.occlusionMap = GetMaterialTexture(material, "_OcclusionMap");     
                 materialData.emissive = material.GetColor("_EmissionColor");
                 materialData.emissiveMap = GetMaterialTexture(material, "_EmissionMap");
                 
-                // for specular setups we will treat the metallic value as the average of the specular RGB intensities
-                if (shaderName == STANDARD_SPECULAR_SHADER) {
-                    Color specular = material.GetColor("_SpecColor");
-                    materialData.metallic = (specular.r + specular.g + specular.b) / 3.0f;
-                } else {
-                    materialData.metallic = material.GetFloat("_Metallic");
+                if (
+                    shaderName == STANDARD_ROUGHNESS_SHADER || // doesn't exist on Unity 2020.1.0f1
+                    shaderName == STANDARD_AUTODESK_INTERACTIVE_SHADER
+                ) {
+                    materialData.roughnessMap = GetMaterialTexture(material, "_SpecGlossMap");
                     materialData.metallicMap = GetMaterialTexture(material, "_MetallicGlossMap");
+                } else {
+                    if (String.IsNullOrEmpty(GetMaterialTexture(material, "_MetallicGlossMap")) == false) {
+                        // extract roughness from metallic alpha
+                        Texture2D roughnessTexure = GetTexture2DFromMaterialTexture(material, "_MetallicGlossMap");
+                        Color[] roughnessPixels = roughnessTexure.GetPixels(0, 0, roughnessTexure.width, roughnessTexure.height);
+                        for(int i = 0; i < roughnessPixels.Length; i++) {
+                            roughnessPixels[i].r = roughnessPixels[i].g = roughnessPixels[i].b = 1 - roughnessPixels[i].a;
+                            roughnessPixels[i].a = 1;
+                        }
+                        roughnessTexure.SetPixels(roughnessPixels);
+                        roughnessTexure.Apply(false);
+                        materialData.roughnessMap = WriteTempTexture2DForExport(
+                            roughnessTexure, material.name + "_roughness.png"
+                        );
+
+                        // remove alpha from metallic alpha
+                        Texture2D metallicTexture = GetTexture2DFromMaterialTexture(material, "_MetallicGlossMap");
+                        Color[] metallicPixels = metallicTexture.GetPixels(0, 0, metallicTexture.width, metallicTexture.height);
+                        for(int i = 0; i < metallicPixels.Length; i++) {
+                            metallicPixels[i].a = 1;
+                        }
+                        metallicTexture.SetPixels(metallicPixels);
+                        metallicTexture.Apply(false);
+                        materialData.metallicMap = WriteTempTexture2DForExport(
+                            metallicTexture, material.name + "_metallic.png"
+                        );
+
+                        // remove old texture from texture dependencies
+                        string metallicGlossMapPath = GetMaterialTexturePath(material, "_MetallicGlossMap");
+                        foreach (var textureDependency in textureDependencies) {
+                            if (textureDependency.Value == metallicGlossMapPath) {
+                                textureDependencies.Remove(textureDependency.Key);
+                                break;
+                            }
+                        }
+                    }
                 }
 
-                // for non-roughness Standard shaders give a warning that is not the recommended Standard shader, 
-                // and invert smoothness for roughness
-                if (shaderName == STANDARD_SHADER || shaderName == STANDARD_SPECULAR_SHADER) {
-                    if (!alternateStandardShaderMaterials.Contains(materialName)) {
-                        alternateStandardShaderMaterials.Add(materialName);
+                if (String.IsNullOrEmpty(materialData.roughnessMap))
+                    if (shaderName == STANDARD_AUTODESK_INTERACTIVE_SHADER) {
+                        materialData.roughness = material.GetFloat("_Glossiness");
+                    } else {
+                        materialData.roughness = 1 - material.GetFloat("_Glossiness");
                     }
-                    materialData.roughness = 1.0f - materialData.roughness;
-                }
+
+                if (String.IsNullOrEmpty(materialData.metallicMap))
+                    materialData.metallic = material.GetFloat("_Metallic");
             }
             
             // store the material data under each fbx material name that it overrides from the material mapping
@@ -1286,6 +1323,41 @@ class AvatarExporter : MonoBehaviour {
             }
         }
         return "";
+    }
+
+    static string GetMaterialTexturePath(Material material, string textureProperty) {
+        // ensure the texture property name exists in this material and return its texture directory path if so
+        if (material.HasProperty(textureProperty)) {
+            Texture texture = material.GetTexture(textureProperty);
+            if (texture) {
+                return AssetDatabase.GetAssetPath(texture);
+            }
+        }
+        return "";
+    }
+
+    static Texture2D GetTexture2DFromMaterialTexture(Material material, string textureProperty) {
+        string filePath = GetMaterialTexturePath(material, textureProperty);
+        byte[] fileData;
+        Texture2D texture = null;
+        if (File.Exists(filePath))     {
+            fileData = File.ReadAllBytes(filePath);
+            texture = new Texture2D(2, 2);
+            texture.LoadImage(fileData);
+            return texture;
+        }
+        return null;
+    }
+
+    static string WriteTempTexture2DForExport(Texture2D texture, string fileName) {
+        byte[] bytes = texture.EncodeToPNG();
+        String filePath = Path.Combine(Application.temporaryCachePath, fileName);
+        System.IO.Directory.CreateDirectory(Path.GetDirectoryName(filePath));
+        Debug.Log(filePath);
+        System.IO.File.WriteAllBytes(filePath, bytes);
+
+        textureDependencies.Add(fileName, filePath);
+        return TEXTURES_DIRECTORY + "/" + fileName;
     }
     
     static void SetMaterialMappings() {
