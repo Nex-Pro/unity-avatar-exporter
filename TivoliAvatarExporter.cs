@@ -1342,7 +1342,7 @@ class AvatarExporter : MonoBehaviour {
         Texture2D texture = null;
         if (File.Exists(filePath))     {
             fileData = File.ReadAllBytes(filePath);
-            texture = new Texture2D(2, 2);
+            texture = new Texture2D(2, 2); // gets resized when loaded
             texture.LoadImage(fileData);
             return texture;
         }
@@ -1353,7 +1353,6 @@ class AvatarExporter : MonoBehaviour {
         byte[] bytes = texture.EncodeToPNG();
         String filePath = Path.Combine(Application.temporaryCachePath, fileName);
         System.IO.Directory.CreateDirectory(Path.GetDirectoryName(filePath));
-        Debug.Log(filePath);
         System.IO.File.WriteAllBytes(filePath, bytes);
 
         textureDependencies.Add(fileName, filePath);
