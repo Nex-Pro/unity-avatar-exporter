@@ -665,12 +665,19 @@ class AvatarExporter : MonoBehaviour {
     static bool WriteFST(string exportFstPath, string projectName, float scale) {        
         // write out core fields to top of fst file
         try {
-            File.WriteAllText(exportFstPath, "exporterVersion = " + AVATAR_EXPORTER_VERSION + "\nname = " + projectName + 
-                                             "\ntype = body+head\nscale = " + scale + "\nfilename = " + assetName + 
-                                             ".fbx\n" + "texdir = " + TEXTURES_DIRECTORY + "\n");
+            File.WriteAllText(exportFstPath, 
+                "name = " + projectName + "\n" +
+                "type = body+head\n" + 
+                "scale = " + scale + "\n" + 
+                "filename = " + assetName +  ".fbx\n"
+                // "texdir = " + TEXTURES_DIRECTORY + "\n"
+            );
         } catch { 
-            EditorUtility.DisplayDialog("Error", "Failed to write file " + exportFstPath + 
-                                        ". Please check the location and try again.", "Ok");
+            EditorUtility.DisplayDialog(
+                "Error",
+                "Failed to write file " + exportFstPath + ". Please check the location and try again.",
+                "Ok"
+            );
             return false;
         }
         
