@@ -309,6 +309,7 @@ class AvatarExporter : MonoBehaviour {
         public Color emissive;
         public string emissiveMap;
         public bool unlit;
+        public string cullFaceMode = "CULL_BACK";
         
         public string getJSON() {
             string json = "{\"materialVersion\":1,\"materials\":{";
@@ -337,10 +338,11 @@ class AvatarExporter : MonoBehaviour {
                 if (!string.IsNullOrEmpty(occlusionMap)) 
                     json += "\"occlusionMap\":\"" + occlusionMap + "\",";
 
-                json += "\"emissive\":" + colorToJSON(emissive);
+                json += "\"emissive\":" + colorToJSON(emissive) + ",";
                 if (!string.IsNullOrEmpty(emissiveMap)) 
-                    json += ",\"emissiveMap\":\"" + emissiveMap + "\"";
-                
+                    json += "\"emissiveMap\":\"" + emissiveMap + "\",";
+
+                json += "\"cullFaceMode\":\"" + cullFaceMode + "\"";
             }
             json += "}}";
             return json;
@@ -488,7 +490,10 @@ class AvatarExporter : MonoBehaviour {
             // default the initial file chooser location to HiFi projects folder in user documents folder
             ExportProjectWindow window = ScriptableObject.CreateInstance<ExportProjectWindow>();
             string initialPath = Directory.Exists(hifiFolder) ? hifiFolder : documentsFolder;
-            window.Init(initialPath, warnings, updateExistingAvatar, avatarPreviewObject, OnUpdateExistingProject, OnExportWindowClose);
+            window.Init(
+                initialPath, warnings, updateExistingAvatar, avatarPreviewObject,
+                OnCullFaceMode, OnUpdateExistingProject, OnExportWindowClose
+            );
         } else { // Export New Avatar menu option
             // create Tivoli Cloud VR Projects folder in user documents folder if it doesn't exist
             if (!Directory.Exists(hifiFolder)) {    
@@ -498,7 +503,16 @@ class AvatarExporter : MonoBehaviour {
             // open export new project popup window including project name, project location, scale, and warnings
             // default the initial project location path to the Tivoli Cloud VR Projects folder above
             ExportProjectWindow window = ScriptableObject.CreateInstance<ExportProjectWindow>();
-            window.Init(hifiFolder, warnings, updateExistingAvatar, avatarPreviewObject, OnExportNewProject, OnExportWindowClose);
+            window.Init(
+                hifiFolder, warnings, updateExistingAvatar, avatarPreviewObject,
+                OnCullFaceMode, OnExportNewProject, OnExportWindowClose
+            );
+        }
+    }
+
+    static void OnCullFaceMode(string cullFaceMode) {
+        foreach (var materialData in materialDatas) {
+            materialData.Value.cullFaceMode = cullFaceMode;
         }
     }
     
@@ -1500,15 +1514,22 @@ class ExportProjectWindow : EditorWindow {
     string scaleWarningText = "";
     float sliderScale = 0.30103f;
     float originalSliderScale;
+    bool doubleSidedFaces = false;
     
+    public delegate void OnCullFaceModeDelegate(string cullFaceMode);
+    OnCullFaceModeDelegate onCullFaceModeCallback;
+
     public delegate void OnExportDelegate(string projectDirectory, string projectName, float scale);
     OnExportDelegate onExportCallback;
     
     public delegate void OnCloseDelegate();
     OnCloseDelegate onCloseCallback;
     
-    public void Init(string initialPath, string warnings, bool updateExisting, GameObject avatarObject,
-                     OnExportDelegate exportCallback, OnCloseDelegate closeCallback) {
+    public void Init(
+        string initialPath, string warnings, bool updateExisting,
+        GameObject avatarObject, OnCullFaceModeDelegate cullFaceModeCallback,
+        OnExportDelegate exportCallback, OnCloseDelegate closeCallback
+    ) {
         updateExistingAvatar = updateExisting;
         float windowHeight = updateExistingAvatar ? UPDATE_EXISTING_WINDOW_HEIGHT : EXPORT_NEW_WINDOW_HEIGHT;
         minSize = new Vector2(WINDOW_WIDTH, windowHeight);
@@ -1518,6 +1539,7 @@ class ExportProjectWindow : EditorWindow {
         initialProjectLocation = initialPath;
         projectLocation = updateExistingAvatar ? "" : initialProjectLocation;
         warningText = warnings;
+        onCullFaceModeCallback = cullFaceModeCallback;
         onExportCallback = exportCallback;
         onCloseCallback = closeCallback;
         
@@ -1613,6 +1635,18 @@ class ExportProjectWindow : EditorWindow {
         actualScale /= 100.0f; // convert back to 1.0-based percentage
         SetAvatarScale(actualScale);
         GUILayout.Label("%", labelStyle);
+        GUILayout.EndHorizontal();
+        
+        GUILayout.Space(15);
+
+        GUILayout.BeginHorizontal();
+        GUILayout.Label("Double sided faces:", labelStyle);
+        bool newDoubleSidedFaces = GUILayout.Toggle(doubleSidedFaces, "");
+        if (doubleSidedFaces != newDoubleSidedFaces) {
+            doubleSidedFaces = newDoubleSidedFaces;
+            onCullFaceModeCallback(doubleSidedFaces ? "CULL_NONE" : "CULL_BACK");
+        }
+        GUILayout.FlexibleSpace();
         GUILayout.EndHorizontal();
         
         GUILayout.Space(15);
