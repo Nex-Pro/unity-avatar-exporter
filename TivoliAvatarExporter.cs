@@ -322,7 +322,7 @@ class AvatarExporter : MonoBehaviour {
                 json += "\"opacityMap\":\"" + albedoMap + "\",";
 
             if (unlit == true) {
-                json += "\"unlit\":true";
+                json += "\"unlit\":true,";
             } else {
                 if (metallic != -1) json += "\"metallic\":" + metallic + ",";
                 if (!string.IsNullOrEmpty(metallicMap)) 
@@ -341,9 +341,8 @@ class AvatarExporter : MonoBehaviour {
                 json += "\"emissive\":" + colorToJSON(emissive) + ",";
                 if (!string.IsNullOrEmpty(emissiveMap)) 
                     json += "\"emissiveMap\":\"" + emissiveMap + "\",";
-
-                json += "\"cullFaceMode\":\"" + cullFaceMode + "\"";
             }
+            json += "\"cullFaceMode\":\"" + cullFaceMode + "\"";
             json += "}}";
             return json;
         }
